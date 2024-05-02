@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef struct BinaryTreeNode
 {
@@ -36,26 +37,7 @@ BinaryTree *create_binary_tree()
     return local;
 }
 
-void delete_all_tree_nodes_from_node(BinaryTreeNode *current_node)
-{
-    if (current_node)
-    {
-        delete_all_tree_nodes_from_node(current_node->left);
-        delete_all_tree_nodes_from_node(current_node->right);
-        free(current_node);
-    }
-}
-
-void delete_binary_tree(BinaryTree *tree)
-{
-    if (tree)
-    {
-        clear_binary_tree(tree);
-        free(tree);
-    }
-}
-
-void insert_new_node_in_binary_tree(BinaryTreeNode *current_node, BinaryTreeNode *new_node) // modify this !, lab 3 also
+void insert_new_node_in_binary_tree(BinaryTreeNode *current_node, BinaryTreeNode *new_node)
 {
     if (current_node)
     {
@@ -84,11 +66,10 @@ void insert_new_node_in_binary_tree(BinaryTreeNode *current_node, BinaryTreeNode
     }
 }
 
-void insert_data_in_binary_tree(BinaryTree *tree, int id, const char *track_name, const char *composer_name, const char *media_type, int duration) // change name of this function
+void insert_data_in_binary_tree(BinaryTree *tree, BinaryTreeNode *new_node)
 {
-    if (tree)
+    if (tree && new_node)
     {
-        BinaryTreeNode *new_node = create_binary_tree_node(id, track_name, composer_name, media_type, duration); // change this, pass new_node as 1 value instead of creating it here
         if (tree->root)
         {
             insert_new_node_in_binary_tree(tree->root, new_node);
@@ -108,14 +89,13 @@ void print_binary_tree_node(BinaryTreeNode *node)
     }
 }
 
-void print_binary_tree_inorder(BinaryTreeNode *root)
+void inorder_traversal_for_printing(BinaryTreeNode *node)
 {
-    if (root)
-    {
-        print_binary_tree_inorder(root->left);
-        print_binary_tree_node(root);
-        print_binary_tree_inorder(root->right);
-    }
+    if (node == NULL)
+        return;
+    inorder_traversal_for_printing(node->left);
+    print_binary_tree_node(node);
+    inorder_traversal_for_printing(node->right);
 }
 
 void print_binary_tree(BinaryTree *tree)
@@ -123,7 +103,7 @@ void print_binary_tree(BinaryTree *tree)
     if (tree && tree->root)
     {
         printf("Binary Tree (Inorder traversal):\n");
-        print_binary_tree_inorder(tree->root);
+        inorder_traversal_for_printing(tree->root);
         printf("\n");
     }
     else
@@ -132,30 +112,63 @@ void print_binary_tree(BinaryTree *tree)
     }
 }
 
-BinaryTreeNode *search_node_by_id(BinaryTreeNode *root, int target_id)
+BinaryTreeNode *search_node_by_id(BinaryTreeNode *root, int target_id, int is_mirrored)
 {
     if (root == NULL || root->id == target_id)
     {
         return root;
     }
 
-    if (target_id < root->id)
+    if (is_mirrored)
     {
-        return search_node_by_id(root->left, target_id);
+        if (target_id > root->id)
+        {
+            return search_node_by_id(root->left, target_id, is_mirrored);
+        }
+        else
+        {
+            return search_node_by_id(root->right, target_id, is_mirrored);
+        }
     }
     else
     {
-        return search_node_by_id(root->right, target_id);
+        if (target_id < root->id)
+        {
+            return search_node_by_id(root->left, target_id, is_mirrored);
+        }
+        else
+        {
+            return search_node_by_id(root->right, target_id, is_mirrored);
+        }
     }
 }
 
-void input_node(BinaryTree *tree)
+void input_nodes(BinaryTree *tree, int num_nodes)
 {
     int id, duration;
-    char track_name[50], composer_name[50], media_type[5];
+    char track_name[50], composer_name[50], media_type[5] = "mp3";
 
-    scanf("%d %s %s %s %d", &id, track_name, composer_name, media_type, &duration);
-    insert_data_in_binary_tree(tree, id, track_name, composer_name, media_type, duration);
+    srand(time(NULL));
+    int used_ids[100] = {0};
+
+    for (int i = 0; i < num_nodes; i++)
+    {
+        // printf("Node %d ID: ", i);
+        // scanf("%d", &id);
+        do
+        {
+            id = rand() % 100 + 1;
+        } while (used_ids[id - 1] == 1);
+
+        used_ids[id - 1] = 1;
+
+        sprintf(track_name, "track_%d", id);
+        sprintf(composer_name, "composer_%d", id);
+        duration = rand() % 301 + 100;
+
+        BinaryTreeNode *new_node = create_binary_tree_node(id, track_name, composer_name, media_type, duration);
+        insert_data_in_binary_tree(tree, new_node);
+    }
 }
 
 void inorder_traversal_of_tree(BinaryTreeNode *node)
@@ -163,8 +176,8 @@ void inorder_traversal_of_tree(BinaryTreeNode *node)
     if (node == NULL)
         return;
     inorder_traversal_of_tree(node->left);
-    print_binary_tree_node(node);
-    // printf("%d ", node->id); // instead of print node->id | print all data from node \n FUNCTION: display_node
+    // print_binary_tree_node(node);
+    printf("%d ", node->id);
     inorder_traversal_of_tree(node->right);
 }
 
@@ -172,8 +185,8 @@ void preorder_traversal_of_tree(BinaryTreeNode *node)
 {
     if (node == NULL)
         return;
-    print_binary_tree_node(node);
-    // printf("%d ", node->id); // instead of print node->id | print all data from node \n FUNCTION: display_node
+    // print_binary_tree_node(node);
+    printf("%d ", node->id);
     inorder_traversal_of_tree(node->left);
     inorder_traversal_of_tree(node->right);
 }
@@ -184,63 +197,71 @@ void postorder_traversal_of_tree(BinaryTreeNode *node)
         return;
     inorder_traversal_of_tree(node->left);
     inorder_traversal_of_tree(node->right);
-    print_binary_tree_node(node);
-    // printf("%d ", node->id); // instead of print node->id | print all data from node \n FUNCTION: display_node
+    // print_binary_tree_node(node);
+    printf("%d ", node->id);
 }
 
-void mirror_binary_tree(BinaryTreeNode * node)
+int mirror_binary_tree(BinaryTreeNode *node)
 {
     if (node == NULL)
-        return;
+        return 1;
 
-    BinaryTreeNode *temp; 
+    int left_result = mirror_binary_tree(node->left);
+    int right_result = mirror_binary_tree(node->right);
 
-    mirror_binary_tree(node->left);
-    mirror_binary_tree(node->right);
-
-    temp = node->left;
+    BinaryTreeNode *temp = node->left;
     node->left = node->right;
     node->right = temp;
+
+    return left_result && right_result;
 }
 
-void clear_tree(BinaryTree *tree)
+void clear_binary_tree_nodes(BinaryTreeNode *node)
 {
-    if (tree && tree->root)
-    {
-        delete_all_tree_nodes_from_node(tree->root);
-        tree->root = NULL;
-    }
-}
-
-void free_binary_tree(BinaryTreeNode * node){
     if (node == NULL)
         return;
-    
-    free_binary_tree(node->left);
-    free_binary_tree(node->right);
+
+    clear_binary_tree_nodes(node->left);
+    clear_binary_tree_nodes(node->right);
 
     free(node);
-} 
+}
+
+void clear_binary_tree(BinaryTree *tree)
+{
+    if (tree == NULL)
+        return;
+
+    clear_binary_tree_nodes(tree->root);
+    tree->root = NULL;
+}
+
+void delete_binary_tree(BinaryTree **tree_ptr)
+{
+    if (tree_ptr == NULL || *tree_ptr == NULL)
+        return;
+
+    clear_binary_tree(*tree_ptr);
+    free(*tree_ptr);
+    *tree_ptr = NULL;
+}
 
 int main()
 {
     BinaryTree *tree = create_binary_tree();
 
-    int menu_option = 0;
+    int menu_option = -1, is_mirrored = 0;
     do
     {
         printf("\n1  | Print binary tree\n");
         printf("2  | Insert nodes\n");
-        printf("4  | Search for node by ID\n");
-        printf("5  | Print inorder\n");
-        printf("6  | Print preorder\n");
-        printf("7  | Print postorder\n");
-        printf("8  | --- DFS\n");
-        printf("9  | --- BFS\n");
-        printf("10 | --- Balance tree\n");
-        printf("11 | Mirror tree\n");
-        printf("12 | Clear tree\n");
-        printf("13 | --- Free tree\n");
+        printf("3  | Search for node by ID\n");
+        printf("4  | Print inorder\n");
+        printf("5  | Print preorder\n");
+        printf("6  | Print postorder\n");
+        printf("7  | Mirror tree\n");
+        printf("8  | Clear tree\n");
+        printf("9  | Free tree\n");
         printf("0  | Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &menu_option);
@@ -251,26 +272,23 @@ int main()
             break;
         case 2:
         {
-            char choice;
-            printf("Enter elements to insert into the binary tree (ID Track_Name Duration, separated by spaces):\n");
-            do
-            {
-                input_node(tree);
-                printf("Insert more elements (y/n): ");
-                scanf(" %c", &choice);
-            } while (choice == 'y' || choice == 'Y');
+            int num_nodes;
+            printf("Number of nodes to insert: ");
+            scanf("%d", &num_nodes);
+
+            input_nodes(tree, num_nodes);
         }
         break;
-        case 4:
+        case 3:
         {
             int target_id = -1;
             printf("Insert search target ID:\n");
             scanf(" %d", &target_id);
-            BinaryTreeNode *result_node = search_node_by_id(tree->root, target_id);
+            BinaryTreeNode *result_node = search_node_by_id(tree->root, target_id, is_mirrored);
             if (result_node != NULL)
             {
-                // instead of this, place found node ... Node * node
-                printf("Found node with ID %d: %s\n", result_node->id, result_node->track_name);
+                printf("Found node with ID %d:\n", result_node->id);
+                print_binary_tree_node(result_node);
             }
             else
             {
@@ -278,32 +296,41 @@ int main()
             }
             break;
         }
-        case 5:
+        case 4:
             printf("\nInorder traversal:\n");
             inorder_traversal_of_tree(tree->root);
             printf("\n");
             break;
-        case 6:
-            printf("\nInorder traversal:\n");
+        case 5:
+            printf("\nPreorder traversal:\n");
             preorder_traversal_of_tree(tree->root);
             printf("\n");
             break;
-        case 7:
-            printf("\nInorder traversal:\n");
+        case 6:
+            printf("\nPostorder traversal:\n");
             postorder_traversal_of_tree(tree->root);
             printf("\n");
             break;
-        case 11:
+        case 7:
             printf("\nMirroring tree...\n");
-            mirror_binary_tree(tree->root);
+            if (mirror_binary_tree(tree->root))
+            {
+                printf("Tree mirrored\n");
+                is_mirrored = !is_mirrored;
+            }
+            else
+            {
+                printf("Failed to mirror tree\n");
+            }
             break;
-        case 12:
+
+        case 8:
             printf("\nClearing tree...\n");
             clear_binary_tree(tree);
             break;
-        case 13:
+        case 9:
             printf("\nFreeing tree...\n");
-            free_binary_tree(tree->root);
+            delete_binary_tree(&tree);
             break;
         case 0:
             printf("==============\n||   EXIT   ||\n==============\n");
@@ -314,18 +341,7 @@ int main()
         }
     } while (menu_option != 0);
 
-    delete_binary_tree(tree);
+    delete_binary_tree(&tree);
 
     return 0;
 }
-
-/*
-\	căutarea unui nod în baza cîmpului cheie și afișarea cîmpurilor nodului găsit;
-?	parcurgerea arborelui în adîncime( DFS); <--- already done when printing inorder, postorder, preorder
--	parcurgerea arborelui în lărgime ( BFS);
-X	balansarea arborelui (în imaginea de mai jos este redat un arbore balansat și unul nebalansat );
-\	oglindirea arborelui (orice nod copil drept, devine un nod copil stîng și analog orice nod copil stîng devine
-    un nod copil drept), ține cont că după oglindirea arborelui binar de căutare proprietatea între nod și copii
-    se va schimba, prin urmare și căutarea deja se va face în altă ordine;
-\	eliberarea memoriei arborelui.
-*/
