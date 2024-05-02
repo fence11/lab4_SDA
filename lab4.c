@@ -4,8 +4,10 @@
 
 typedef struct BinaryTreeNode
 {
-    int id;
-    char track_name[100];
+    int id; // id -> key
+    char track_name[50];
+    char composer_name[50];
+    char media_type[5];
     int duration;
     struct BinaryTreeNode *left;
     struct BinaryTreeNode *right;
@@ -16,11 +18,13 @@ typedef struct BinaryTree
     BinaryTreeNode *root;
 } BinaryTree;
 
-BinaryTreeNode *create_binary_tree_node(int id, const char *track_name, int duration)
+BinaryTreeNode *create_binary_tree_node(int id, const char *track_name, const char *composer_name, const char *media_type, int duration)
 {
     BinaryTreeNode *tree_node = calloc(sizeof(BinaryTreeNode), 1);
     tree_node->id = id;
     strncpy(tree_node->track_name, track_name, sizeof(tree_node->track_name) - 1);
+    strncpy(tree_node->composer_name, composer_name, sizeof(tree_node->composer_name) - 1);
+    strncpy(tree_node->media_type, media_type, sizeof(tree_node->media_type) - 1);
     tree_node->duration = duration;
     tree_node->left = tree_node->right = NULL;
     return tree_node;
@@ -42,18 +46,6 @@ void delete_all_tree_nodes_from_node(BinaryTreeNode *current_node)
     }
 }
 
-void clear_binary_tree(BinaryTree *tree)
-{
-    if (tree)
-    {
-        if (tree->root)
-        {
-            delete_all_tree_nodes_from_node(tree->root);
-            tree->root = NULL;
-        }
-    }
-}
-
 void delete_binary_tree(BinaryTree *tree)
 {
     if (tree)
@@ -63,7 +55,7 @@ void delete_binary_tree(BinaryTree *tree)
     }
 }
 
-void insert_new_node_in_binary_tree(BinaryTreeNode *current_node, BinaryTreeNode *new_node)
+void insert_new_node_in_binary_tree(BinaryTreeNode *current_node, BinaryTreeNode *new_node) // modify this !, lab 3 also
 {
     if (current_node)
     {
@@ -92,11 +84,11 @@ void insert_new_node_in_binary_tree(BinaryTreeNode *current_node, BinaryTreeNode
     }
 }
 
-void insert_data_in_binary_tree(BinaryTree *tree, int id, const char *track_name, int duration)
+void insert_data_in_binary_tree(BinaryTree *tree, int id, const char *track_name, const char *composer_name, const char *media_type, int duration) // change name of this function
 {
     if (tree)
     {
-        BinaryTreeNode *new_node = create_binary_tree_node(id, track_name, duration);
+        BinaryTreeNode *new_node = create_binary_tree_node(id, track_name, composer_name, media_type, duration); // change this, pass new_node as 1 value instead of creating it here
         if (tree->root)
         {
             insert_new_node_in_binary_tree(tree->root, new_node);
@@ -112,7 +104,7 @@ void print_binary_tree_node(BinaryTreeNode *node)
 {
     if (node)
     {
-        printf("ID: %3d, Track Name: %10s, Duration: %4d\n", node->id, node->track_name, node->duration);
+        printf("ID: %3d, Track Name: %8s, Composer: %8s, Media: %4s, Duration: %4d\n", node->id, node->track_name, node->composer_name, node->media_type, node->duration);
     }
 }
 
@@ -160,10 +152,10 @@ BinaryTreeNode *search_node_by_id(BinaryTreeNode *root, int target_id)
 void input_node(BinaryTree *tree)
 {
     int id, duration;
-    char track_name[100];
+    char track_name[50], composer_name[50], media_type[5];
 
-    scanf("%d %s %d", &id, track_name, &duration);
-    insert_data_in_binary_tree(tree, id, track_name, duration);
+    scanf("%d %s %s %s %d", &id, track_name, composer_name, media_type, &duration);
+    insert_data_in_binary_tree(tree, id, track_name, composer_name, media_type, duration);
 }
 
 void inorder_traversal_of_tree(BinaryTreeNode *node)
@@ -171,7 +163,8 @@ void inorder_traversal_of_tree(BinaryTreeNode *node)
     if (node == NULL)
         return;
     inorder_traversal_of_tree(node->left);
-    printf("%d ", node->id); // instead of print node->id | print all data from node \n FUNCTION: display_node
+    print_binary_tree_node(node);
+    // printf("%d ", node->id); // instead of print node->id | print all data from node \n FUNCTION: display_node
     inorder_traversal_of_tree(node->right);
 }
 
@@ -179,7 +172,8 @@ void preorder_traversal_of_tree(BinaryTreeNode *node)
 {
     if (node == NULL)
         return;
-    printf("%d ", node->id); // instead of print node->id | print all data from node \n FUNCTION: display_node
+    print_binary_tree_node(node);
+    // printf("%d ", node->id); // instead of print node->id | print all data from node \n FUNCTION: display_node
     inorder_traversal_of_tree(node->left);
     inorder_traversal_of_tree(node->right);
 }
@@ -190,7 +184,8 @@ void postorder_traversal_of_tree(BinaryTreeNode *node)
         return;
     inorder_traversal_of_tree(node->left);
     inorder_traversal_of_tree(node->right);
-    printf("%d ", node->id); // instead of print node->id | print all data from node \n FUNCTION: display_node
+    print_binary_tree_node(node);
+    // printf("%d ", node->id); // instead of print node->id | print all data from node \n FUNCTION: display_node
 }
 
 void mirror_binary_tree(BinaryTreeNode * node)
